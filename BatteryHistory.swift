@@ -13,25 +13,16 @@ final class BatteryHistory {
     func addSample(percentage: Int) {
         let sample = BatterySample(time: Date(), percentage: percentage)
         samples.append(sample)
-        if samples.count > 10 { samples.removeFirst() }
+        if samples.count > 5 { samples.removeFirst() }
     }
 
-    func averageDrainPerHour() -> Double? {
-        guard samples.count >= 2 else { return nil }
+    func averageDrainPerHour() -> Float? {
+        guard let first = samples.first, let last = samples.last, samples.count >= 2 else { return nil }
 
-        var rates: [Double] = []
+        let deltaPercent = Float(first.percentage - last.percentage)
+        let deltaTime = Float(last.time.timeIntervalSince(first.time)) / 3600.0
+        guard deltaTime > 0 else { return nil }
 
-        for i in 1..<samples.count {
-            let s1 = samples[i - 1]
-            let s2 = samples[i]
-            let deltaPercent = Double(s1.percentage - s2.percentage)
-            let deltaTime = s2.time.timeIntervalSince(s1.time) / 3600.0
-            if deltaTime > 0 {
-                rates.append(deltaPercent / deltaTime)
-            }
-        }
-
-        guard !rates.isEmpty else { return nil }
-        return rates.reduce(0, +) / Double(rates.count)
+        return deltaPercent / deltaTime
     }
 }

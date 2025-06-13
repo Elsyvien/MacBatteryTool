@@ -4,6 +4,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var statusItem: NSStatusItem?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        NSApp.setActivationPolicy(.accessory)
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         statusItem?.button?.title = "🔋 Lade..."
 
@@ -20,7 +21,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
 
             if let avgDrain = BatteryHistory.shared.averageDrainPerHour() {
-                output += String(format: " | %.1f %%/h", avgDrain)
+                output += String(format: " | %.1f %%/h", Double(avgDrain))
             }
 
             self.statusItem?.button?.title = output.isEmpty ? "⚠️ n/a" : output
