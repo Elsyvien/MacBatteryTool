@@ -85,4 +85,20 @@ final class BatteryReader {
             return "🔴"
         }
     }
+
+    /// Gibt zurück, ob der Akku gerade geladen wird
+    func isCharging() -> Bool? {
+        let service = IOServiceGetMatchingService(kIOMainPortDefault,
+                                                  IOServiceNameMatching("AppleSmartBattery"))
+        guard service != 0 else { return nil }
+        defer { IOObjectRelease(service) }
+
+        guard let any = IORegistryEntryCreateCFProperty(service,
+                                                         "IsCharging" as CFString,
+                                                         kCFAllocatorDefault, 0)?.takeRetainedValue(),
+              let num = any as? Int else {
+            return nil
+        }
+        return num != 0
+    }
 }

@@ -18,8 +18,13 @@ final class BatteryHistory {
     private var samples: [BatterySample] = []
     private var powerSamples: [PowerSample] = []
     private var drainHistory: [Double] = []
+    private var runtimeSamples: [Double] = []
     private let maxSamples = 30  // ca. 15–30 Sekunden bei 1–2 s Intervall
     private let maxPowerSamples = 60
+    private let maxRuntimeSamples = 60
+
+    private var lastChargeTime = Date()
+    private var wasCharging = false
 
     // Neuen Messwert hinzufügen
     func addSample(charge: (current: Int, max: Int)) {
@@ -61,5 +66,26 @@ final class BatteryHistory {
         print("DEBUG: avgPower = \(avgPower) W, drainPerHour = \(drainPerHour) %/h")
 
         return drainPerHour
+    }
+
+    // MARK: - Runtime Tracking
+
+    func addRuntimeSample(isCharging: Bool) {
+        if wasCharging && !isCharging {
+            lastChargeTime = Date()
+        }
+        wasCharging = isCharging
+
+        let hours = Date().timeIntervalSince(lastChargeTime) / 3600
+        runtimeSamples.append(hours)
+        if runtimeSamples.count > maxRuntimeSamples { runtimeSamples.removeFirst() }
+    }
+
+    func runtimeHistory() -> [Double] {
+        return runtimeSamples
+    }
+
+    func hoursSinceLastCharge() -> Double {
+        return Date().timeIntervalSince(lastChargeTime) / 3600
     }
 }
