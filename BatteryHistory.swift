@@ -12,14 +12,14 @@ final class BatteryHistory {
     private var samples: [BatterySample] = []
     private let maxSamples = 30  // Erhöhe den Puffer auf 30 für längeren Verlauf
 
-    /// Neuen Messwert hinzufügen
+    // Neuen Messwert hinzufügen
     func addSample(charge: (current: Int, max: Int)) {
         let sample = BatterySample(time: Date(), charge: charge.current, max: charge.max)
         samples.append(sample)
         if samples.count > maxSamples { samples.removeFirst() }
     }
 
-    /// Durchschnittlicher Entladeverbrauch in % pro Stunde
+    // Durchschnittlicher Entladeverbrauch in % pro Stunde
     func averageDrainPerHour() -> Double? {
         guard let first = samples.first, let last = samples.last, samples.count >= 2 else {
             print("Nicht genug Daten: \(samples.count) Samples")

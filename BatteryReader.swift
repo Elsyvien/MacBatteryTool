@@ -5,7 +5,7 @@ final class BatteryReader {
 
     static let shared = BatteryReader()
 
-    /// Liefert Leistung in Watt oder nil, falls nicht verfügbar.
+    // Liefert Leistung in Watt oder nil, falls nicht verfügbar.
     func readWatt() -> Double? {
 
         // 1. AppleSmartBattery-Service holen
