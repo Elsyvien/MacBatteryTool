@@ -6,8 +6,8 @@ class GraphView: NSView {
         didSet { needsDisplay = true }
     }
 
-    /// Optional maximum value for the Y-axis. If nil the largest value of
-    /// `values` will be used. The graph always starts at 0.
+    /// Optional maximum value for the Y-axis. If `nil` the largest sample value
+    /// will be used. The graph baseline includes zero and negative values.
     var maxValue: Double?
 
     override init(frame frameRect: NSRect) {
@@ -30,9 +30,11 @@ class GraphView: NSView {
 
         let path = NSBezierPath()
 
-        // Start always at zero to avoid misleading scaling
-        let minVal: Double = 0
-        let maxVal = maxValue ?? (values.max() ?? 0)
+        // Scale from the minimum to the maximum but always include zero
+        let dataMin = values.min() ?? 0
+        let dataMax = values.max() ?? 0
+        let minVal = min(0, dataMin)
+        let maxVal = maxValue ?? dataMax
         let range = max(maxVal - minVal, 1)
 
         let margin: CGFloat = 2
@@ -50,16 +52,18 @@ class GraphView: NSView {
             }
         }
 
-        // Optional fill under the curve for nicer visuals
+        // Light gradient fill for nicer visuals
         let fillPath = path.copy() as! NSBezierPath
         fillPath.line(to: NSPoint(x: margin + availableWidth, y: 0))
         fillPath.line(to: NSPoint(x: margin, y: 0))
         fillPath.close()
-        NSColor.systemBlue.withAlphaComponent(0.3).setFill()
-        fillPath.fill()
+        if let gradient = NSGradient(starting: NSColor.systemBlue.withAlphaComponent(0.4),
+                                     ending: NSColor.systemBlue.withAlphaComponent(0.05)) {
+            gradient.draw(in: fillPath, angle: -90)
+        }
 
         NSColor.systemBlue.setStroke()
-        path.lineWidth = 2
+        path.lineWidth = 1.5
         path.lineJoinStyle = .round
         path.lineCapStyle = .round
         path.stroke()
