@@ -51,7 +51,7 @@ final class BatteryHistory {
     }
 
     // Durchschnittlicher Verbrauch auf Basis der gemessenen Leistung
-    func averageDrainPerHour(capacityWh: Double = 52.0) -> Double? {
+    func averageDrainPerHour(capacityWh: Double = 53.0) -> Double? {
         guard !powerSamples.isEmpty else { return nil }
 
         let avgPower = powerSamples.map { $0.watt }.reduce(0, +) / Double(powerSamples.count)
