@@ -7,13 +7,23 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         statusItem?.button?.title = "🔋 Lade..."
 
-    Timer.scheduledTimer(withTimeInterval: 10, repeats: true) { _ in
-        if let watt = BatteryReader.shared.readWatt() {
-            let symbol = BatteryReader.shared.rating(for: watt)
-            self.statusItem?.button?.title = String(format: "⚡ %.2f W %@", watt, symbol)
-        } else {
-            self.statusItem?.button?.title = "⚠️  n/a"
+        Timer.scheduledTimer(withTimeInterval: 5, repeats: true) { _ in
+            if let currentPercent = BatteryReader.shared.readPercentage() {
+                BatteryHistory.shared.addSample(percentage: currentPercent)
             }
+
+            var output = ""
+
+            if let watt = BatteryReader.shared.readWatt() {
+                let symbol = BatteryReader.shared.rating(for: watt)
+                output += String(format: "⚡ %.2f W %@", watt, symbol)
+            }
+
+            if let avgDrain = BatteryHistory.shared.averageDrainPerHour() {
+                output += String(format: " | %.1f %%/h", avgDrain)
+            }
+
+            self.statusItem?.button?.title = output.isEmpty ? "⚠️ n/a" : output
         }
     }
 }
