@@ -52,7 +52,7 @@ final class BatteryReader {
             return nil
         }
 
-        return Int((Double(current) / Double(max)) * 100)
+        return Int((Float(current) / Float(max)) * 100)
     }
     /// Bewertungssymbol anhand Watt
     func rating(for watt: Double) -> String {
