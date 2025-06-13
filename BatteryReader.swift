@@ -54,6 +54,26 @@ final class BatteryReader {
 
         return Int((Float(current) / Float(max)) * 100)
     }
+
+    /// Liefert aktuelle und maximale Ladung in mAh
+    func readCharge() -> (current: Int, max: Int)? {
+        let service = IOServiceGetMatchingService(kIOMainPortDefault,
+                                                  IOServiceNameMatching("AppleSmartBattery"))
+        guard service != 0 else { return nil }
+        defer { IOObjectRelease(service) }
+
+        guard
+            let currentAny = IORegistryEntryCreateCFProperty(service, "CurrentCapacity" as CFString, kCFAllocatorDefault, 0)?.takeRetainedValue(),
+            let maxAny = IORegistryEntryCreateCFProperty(service, "MaxCapacity" as CFString, kCFAllocatorDefault, 0)?.takeRetainedValue(),
+            let current = currentAny as? Int,
+            let max = maxAny as? Int,
+            max > 0
+        else {
+            return nil
+        }
+
+        return (current: current, max: max)
+    }
     /// Bewertungssymbol anhand Watt
     func rating(for watt: Double) -> String {
         switch watt {

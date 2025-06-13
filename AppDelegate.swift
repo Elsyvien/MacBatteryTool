@@ -9,8 +9,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         statusItem?.button?.title = "🔋 Lade..."
 
         Timer.scheduledTimer(withTimeInterval: 5, repeats: true) { _ in
-            if let currentPercent = BatteryReader.shared.readPercentage() {
-                BatteryHistory.shared.addSample(percentage: currentPercent)
+            if let charge = BatteryReader.shared.readCharge() {
+                BatteryHistory.shared.addSample(charge: charge)
             }
 
             var output = ""
