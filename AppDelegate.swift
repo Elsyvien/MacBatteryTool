@@ -6,6 +6,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var statusItem: NSStatusItem?
     var popover: NSPopover?
     private var graphView: GraphView?
+    private var runtimeGraph: GraphView?
+    private var runtimeLabel: NSTextField?
     private var mode: GraphMode = .watt
     private var segment: NSSegmentedControl?
 
@@ -21,6 +23,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 BatteryHistory.shared.addSample(charge: charge)
             }
 
+            if let charging = BatteryReader.shared.isCharging() {
+                BatteryHistory.shared.addRuntimeSample(isCharging: charging)
+            }
+
             var output = ""
 
             if let watt = BatteryReader.shared.readWatt() {
@@ -34,13 +40,19 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
 
             self.statusItem?.button?.title = output.isEmpty ? "⚠️ n/a" : output
+
+            if let label = self.runtimeLabel {
+                let hours = BatteryHistory.shared.hoursSinceLastCharge()
+                label.stringValue = String(format: "Seit letzter Ladung: %.1f h", hours)
+            }
+
             self.updateGraphIfNeeded()
         }
     }
 
     @objc func togglePopover() {
         if popover == nil {
-            let rect = NSRect(x: 0, y: 0, width: 300, height: 170)
+            let rect = NSRect(x: 0, y: 0, width: 300, height: 220)
             let viewController = NSViewController()
             let container = NSView(frame: rect)
 
@@ -50,10 +62,21 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             container.addSubview(segment)
             self.segment = segment
 
-            let graphRect = NSRect(x: 0, y: 0, width: rect.width, height: rect.height - 35)
+            let label = NSTextField(labelWithString: "")
+            label.alignment = .center
+            label.frame = NSRect(x: 10, y: 5, width: rect.width - 20, height: 20)
+            container.addSubview(label)
+            self.runtimeLabel = label
+
+            let runtimeGraphRect = NSRect(x: 0, y: 30, width: rect.width, height: 40)
+            let runtime = GraphView(frame: runtimeGraphRect)
+            container.addSubview(runtime)
+            self.runtimeGraph = runtime
+
+            let graphRect = NSRect(x: 0, y: 75, width: rect.width, height: rect.height - 110)
             let graph = GraphView(frame: graphRect)
             container.addSubview(graph)
-
+            
             viewController.view = container
             viewController.preferredContentSize = rect.size
 
@@ -89,10 +112,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         case .drain:
             graph.values = BatteryHistory.shared.drainHistoryValues()
         }
+
+        runtimeGraph?.values = BatteryHistory.shared.runtimeHistory()
     }
 
     private func updateGraphIfNeeded() {
         guard let popover = popover, popover.isShown else { return }
         updateGraph()
+        if let label = runtimeLabel {
+            let hours = BatteryHistory.shared.hoursSinceLastCharge()
+            label.stringValue = String(format: "Seit letzter Ladung: %.1f h", hours)
+        }
     }
 }
