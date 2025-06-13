@@ -5,10 +5,22 @@ class GraphView: NSView {
         didSet { needsDisplay = true }
     }
 
+    override init(frame frameRect: NSRect) {
+        super.init(frame: frameRect)
+        wantsLayer = true
+        layer?.backgroundColor = NSColor.clear.cgColor
+    }
+
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        wantsLayer = true
+        layer?.backgroundColor = NSColor.clear.cgColor
+    }
+
+    override var isOpaque: Bool { false }
+
     override func draw(_ dirtyRect: NSRect) {
         super.draw(dirtyRect)
-        NSColor.windowBackgroundColor.setFill()
-        dirtyRect.fill()
         guard values.count > 1 else { return }
         let path = NSBezierPath()
         let maxVal = values.max() ?? 0
@@ -25,7 +37,9 @@ class GraphView: NSView {
             }
         }
         NSColor.systemBlue.setStroke()
-        path.lineWidth = 2
+        path.lineWidth = 3
+        path.lineJoinStyle = .round
+        path.lineCapStyle = .round
         path.stroke()
     }
 }

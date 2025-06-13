@@ -2,14 +2,15 @@ import Cocoa
 
 class AppDelegate: NSObject, NSApplicationDelegate {
     var statusItem: NSStatusItem?
-    var detailWindow: NSWindow?
+    var popover: NSPopover?
+    private var graphView: GraphView?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         statusItem?.button?.title = "🔋 Lade..."
         statusItem?.button?.target = self
-        statusItem?.button?.action = #selector(showDetails)
+        statusItem?.button?.action = #selector(togglePopover)
 
         Timer.scheduledTimer(withTimeInterval: 5, repeats: true) { _ in
             if let charge = BatteryReader.shared.readCharge() {
@@ -33,28 +34,37 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    @objc func showDetails() {
+    @objc func togglePopover() {
         let history = BatteryHistory.shared.wattHistory()
-        if detailWindow == nil {
+
+        if popover == nil {
             let rect = NSRect(x: 0, y: 0, width: 300, height: 150)
-            detailWindow = NSWindow(contentRect: rect,
-                                   styleMask: [.titled, .closable],
-                                   backing: .buffered,
-                                   defer: false)
-            detailWindow?.isReleasedWhenClosed = false
-            detailWindow?.title = "Watt Verlauf"
-            detailWindow?.contentView = GraphView(frame: rect)
+            let viewController = NSViewController()
+            let graph = GraphView(frame: rect)
+            viewController.view = graph
+            viewController.preferredContentSize = rect.size
+
+            let pop = NSPopover()
+            pop.behavior = .transient
+            pop.contentViewController = viewController
+
+            self.popover = pop
+            self.graphView = graph
         }
-        if let graph = detailWindow?.contentView as? GraphView {
-            graph.values = history
+
+        graphView?.values = history
+
+        guard let button = statusItem?.button, let popover = popover else { return }
+        if popover.isShown {
+            popover.performClose(self)
+        } else {
+            popover.show(relativeTo: button.bounds, of: button, preferredEdge: .maxY)
+            NSApp.activate(ignoringOtherApps: true)
         }
-        detailWindow?.makeKeyAndOrderFront(nil)
-        NSApp.activate(ignoringOtherApps: true)
     }
 
     private func updateGraphIfNeeded() {
-        guard let window = detailWindow, window.isVisible,
-              let graph = window.contentView as? GraphView else { return }
+        guard let popover = popover, popover.isShown, let graph = graphView else { return }
         graph.values = BatteryHistory.shared.wattHistory()
     }
 }
