@@ -57,9 +57,12 @@ final class BatteryReader {
     /// Bewertungssymbol anhand Watt
     func rating(for watt: Double) -> String {
         switch watt {
-        case ..<2.0:  return "🟢"
-        case 2.0..<5: return "🟡"
-        default:      return "🔴"
+        case ..<5.0:
+            return "🟢"
+        case 5.0..<15.0:
+            return "🟡"
+        default:
+            return "🔴"
         }
     }
 }
