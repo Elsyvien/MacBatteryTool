@@ -91,3 +91,5 @@ iOSInjectionProject/
 
 *.app
 __pycache__/
+.DS_Store
+BatteryApp
